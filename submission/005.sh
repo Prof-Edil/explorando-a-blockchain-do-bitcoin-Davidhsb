@@ -4,16 +4,13 @@
 
 TXID="37d966a263350fe747f1c606b159987545844a493dd38d84b070027a895c4517"
 
-# Obter os detalhes da transação para extrair as chaves públicas dos inputs
 RAW_TX=$(bitcoin-cli getrawtransaction "$TXID" true)
+
 PUBKEYS=$(echo "$RAW_TX" | jq -r '.vin[].scriptSig.asm' | awk '{print $2}' | grep -E '^[a-fA-F0-9]{66}$')
 
-# Construir o array de chaves públicas para o multisig
 PUBKEYS_JSON=$(echo "$PUBKEYS" | jq -R -s 'split("\n") | map(select(. != ""))')
 
-# Criar um multisig 1-de-4 usando as chaves públicas extraídas
 MULTISIG=$(bitcoin-cli createmultisig 1 "$PUBKEYS_JSON")
 
-# Exibir o endereço P2SH multisig gerado
-echo "Endereço P2SH multisig: $(echo "$MULTISIG" | jq -r '.address')"
+echo "$MULTISIG" | jq -r '.address'
 
